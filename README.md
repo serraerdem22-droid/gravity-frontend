@@ -1,29 +1,27 @@
-# Gravity Frontend
+# Kaggle Savaşı — Model Yarışı ⚔️
 
-Bu proje, modern bir React uygulaması için temel klasör mimarisini içermektedir. Her klasör belirli bir sorumluluğa sahip olup projenin büyüdükçe düzenli kalmasını sağlar.
+Bu proje, veri bilimine giriş sürecini oyunlaştırmak amacıyla geliştirilmiş rekabetçi bir web oyunudur. İki kişilik yapısıyla Kaggle yarışmalarını simüle eder.
 
 ## Proje Hakkında
 
-Bu uygulama yapısı, frontend geliştirme sürecini daha anlaşılır ve sürdürülebilir kılmak amacıyla oluşturulmuştur. Bileşenler, sayfalar, servisler ve stiller birbirinden bağımsız klasörlerde tutulur.
+Oyuncuya kirli bir veri seti verilir. Rakip olarak suni zeka ile yarışılır. Kim veriyi daha iyi temizler, daha doğru özellikler üretir ve daha başarılı bir model kurarsa o kazanır.
 
-## Klasör Yapısı
+## Oyun Aşamaları
 
-Public klasörü, sitenin tarayıcı tarafından ilk görülen kısmıdır. Favicon ve ana HTML dosyası burada bulunur.
+Birinci aşamada veri temizleme yapılır. Kirli veri setinde eksik değerler, aykırı gözlemler, hatalı veri tipleri ve tekrarlayan satırlar bulunmaktadır. Oyuncu bu sorunları tespit edip tıklayarak düzeltir. Her doğru düzeltme puan kazandırır.
 
-Assets klasörü, projede kullanılan tüm görseller, videolar ve özel yazı tiplerinin saklandığı yerdir.
+İkinci aşamada özellik mühendisliği uygulanır. Oyuncu mevcut değişkenlerden yeni ve anlamlı özellikler türetir. STEM ortalaması, harf notu dönüşümü, normalize puanlar ve risk skoru gibi seçenekler arasından tercih yapılır. Her seçim bonus puan sağlar.
 
-Components klasörü, tekrar kullanılabilir arayüz parçalarını barındırır. Örneğin bir buton ya da kart bileşeni bir kez yazılır ve projenin her yerine eklenir.
+Üçüncü aşamada model seçimi gerçekleştirilir. Oyuncu Linear Regression, Random Forest, Neural Network, KNN, SVM ve XGBoost algoritmaları arasından birini seçer ve modelini eğitir. Modelin doğruluk oranı final puanını belirler.
 
-Pages klasörü, bileşenlerin bir araya gelerek oluşturduğu tam sayfa görünümlerini içerir. Her ekran buradan yönetilir.
+## Puanlama
 
-Services klasörü, uygulamanın sunucu tarafıyla iletişim kurduğu fonksiyonları tutar. Veri çekme ve gönderme işlemleri buradan yapılır.
+Veri temizleme her sorun için 10 ile 20 puan arasında puan sağlar. Özellik mühendisliği her seçim için 15 ile 30 puan arasında bonus kazandırır. Model doğruluğu ise yüzde değeri kadar puan olarak eklenir.
 
-Styles klasörü, uygulamanın görsel tasarımını belirleyen renk, yazı tipi ve düzen kurallarını içerir.
+## Teknolojiler
 
-App.js dosyası, tüm sayfaları ve yönlendirmeleri yöneten ana bileşendir.
+Uygulama saf HTML, CSS ve JavaScript ile geliştirilmiştir. Herhangi bir kütüphane veya framework kullanılmamıştır. Tüm oyun mantığı tarayıcı üzerinde çalışır.
 
-Index.js dosyası ise uygulamanın başladığı giriş noktasıdır.
+## Oyunu Çalıştırmak
 
-## Kurulum
-
-Projeyi çalıştırmak için önce bağımlılıkların yüklenmesi, ardından geliştirme sunucusunun başlatılması gerekir. Uygulama açıldığında yerel sunucu üzerinden erişilebilir hale gelir.
+index.html dosyasını bir tarayıcıda açmak yeterlidir. Sunucu kurulumuna gerek yoktur.

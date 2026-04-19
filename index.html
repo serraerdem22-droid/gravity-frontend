@@ -1,0 +1,767 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kaggle Savaşı ⚔️ | Model Yarışı</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#06060f;--surface:rgba(255,255,255,0.04);--border:rgba(255,255,255,0.08);
+  --p1:#6366f1;--p1l:rgba(99,102,241,0.2);--ai:#f97316;--ail:rgba(249,115,22,0.2);
+  --text:#e2e8f0;--muted:#64748b;--ok:#10b981;--danger:#ef4444;--warn:#fbbf24;
+}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
+body::before{content:'';position:fixed;inset:0;
+  background:radial-gradient(ellipse at 15% 15%,rgba(99,102,241,.1) 0%,transparent 55%),
+             radial-gradient(ellipse at 85% 85%,rgba(249,115,22,.08) 0%,transparent 55%);
+  pointer-events:none;z-index:0}
+
+.screen{display:none;min-height:100vh;position:relative;z-index:1;flex-direction:column}
+.screen.active{display:flex}
+
+/* ─── START SCREEN ─── */
+#startScreen{align-items:center;justify-content:center;padding:40px 20px;text-align:center}
+.badge{display:inline-block;padding:6px 18px;border:1px solid var(--p1);border-radius:30px;
+  color:var(--p1);font-size:.8rem;font-weight:600;letter-spacing:2px;margin-bottom:24px;
+  animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(99,102,241,.4)}50%{box-shadow:0 0 0 8px rgba(99,102,241,0)}}
+.start-title{font-size:clamp(2.5rem,6vw,4.5rem);font-weight:900;
+  background:linear-gradient(135deg,#818cf8,#6366f1,#f97316);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+  line-height:1.1;margin-bottom:8px}
+.start-sub{font-size:1.1rem;font-weight:300;color:var(--muted);margin-bottom:40px}
+.name-row{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-bottom:48px}
+.name-row input{padding:14px 22px;background:var(--surface);border:1px solid var(--border);
+  border-radius:12px;color:var(--text);font-family:'Inter',sans-serif;font-size:1rem;
+  width:280px;outline:none;transition:.3s}
+.name-row input:focus{border-color:var(--p1);box-shadow:0 0 0 3px var(--p1l)}
+.name-row input::placeholder{color:var(--muted)}
+.start-btn{padding:14px 36px;background:linear-gradient(135deg,var(--p1),#8b5cf6);
+  border:none;border-radius:12px;color:#fff;font-family:'Inter',sans-serif;
+  font-size:1rem;font-weight:700;cursor:pointer;transition:.3s;white-space:nowrap}
+.start-btn:hover{transform:translateY(-2px);box-shadow:0 8px 30px rgba(99,102,241,.5)}
+.how-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;
+  max-width:700px;width:100%}
+.how-card{background:var(--surface);border:1px solid var(--border);border-radius:16px;
+  padding:24px 20px;text-align:left}
+.how-num{font-size:2rem;font-weight:900;color:var(--p1);margin-bottom:8px}
+.how-card h4{font-size:.95rem;font-weight:600;margin-bottom:6px}
+.how-card p{font-size:.85rem;color:var(--muted);line-height:1.6}
+
+/* ─── GAME SCREEN ─── */
+#gameScreen{flex-direction:column}
+.game-header{display:flex;align-items:center;justify-content:space-between;
+  padding:14px 24px;background:rgba(0,0,0,.4);border-bottom:1px solid var(--border);
+  backdrop-filter:blur(10px);position:sticky;top:0;z-index:50;gap:12px;flex-wrap:wrap}
+.phase-steps{display:flex;gap:8px}
+.phase-step{padding:6px 14px;border-radius:20px;font-size:.8rem;font-weight:600;
+  border:1px solid var(--border);color:var(--muted);transition:.3s}
+.phase-step.active{background:var(--p1);border-color:var(--p1);color:#fff;
+  box-shadow:0 0 14px rgba(99,102,241,.5)}
+.phase-step.done{background:var(--ok);border-color:var(--ok);color:#fff}
+.timer-wrap{text-align:center}
+.timer{font-family:'JetBrains Mono',monospace;font-size:2rem;font-weight:600;
+  color:var(--warn);transition:.3s}
+.timer.urgent{color:var(--danger);animation:blink .5s infinite}
+@keyframes blink{50%{opacity:.4}}
+.timer-label{font-size:.7rem;color:var(--muted);letter-spacing:1px}
+.scores-row{display:flex;gap:16px;align-items:center}
+.score-box{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:8px 16px;text-align:center}
+.score-box .score-num{font-size:1.5rem;font-weight:800}
+.score-box .score-lbl{font-size:.7rem;color:var(--muted)}
+.p1-score .score-num{color:var(--p1)}
+.ai-score .score-num{color:var(--ai)}
+.panels{display:grid;grid-template-columns:1fr auto 1fr;gap:0;flex:1}
+.vs-divider{display:flex;align-items:center;justify-content:center;
+  width:48px;background:rgba(0,0,0,.3);border-left:1px solid var(--border);
+  border-right:1px solid var(--border)}
+.vs-text{font-size:1.2rem;font-weight:900;color:var(--muted);letter-spacing:2px;
+  writing-mode:vertical-rl;text-orientation:mixed}
+.panel{padding:20px;overflow-y:auto;max-height:calc(100vh - 80px)}
+.panel-header{display:flex;align-items:center;gap:10px;margin-bottom:16px}
+.panel-avatar{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;
+  justify-content:center;font-size:1.1rem;flex-shrink:0}
+.p1-av{background:var(--p1l);border:2px solid var(--p1)}
+.ai-av{background:var(--ail);border:2px solid var(--ai)}
+.panel-name{font-weight:700;font-size:1rem}
+.panel-pts{font-size:.8rem;color:var(--muted);margin-left:auto}
+
+/* DATA TABLE */
+.table-wrap{overflow-x:auto;border-radius:12px;border:1px solid var(--border)}
+table{width:100%;border-collapse:collapse;font-size:.8rem}
+thead th{background:rgba(255,255,255,.06);padding:10px 12px;text-align:left;
+  font-weight:600;color:var(--muted);font-size:.75rem;letter-spacing:.5px;white-space:nowrap}
+tbody tr{border-top:1px solid var(--border);transition:.2s}
+tbody tr:hover{background:rgba(255,255,255,.03)}
+tbody td{padding:9px 12px;white-space:nowrap}
+.cell-issue{cursor:pointer;display:inline-flex;align-items:center;gap:4px;
+  background:rgba(239,68,68,.15);border:1px solid rgba(239,68,68,.4);
+  border-radius:6px;padding:2px 8px;color:#fca5a5;font-family:'JetBrains Mono',monospace;
+  font-size:.8rem;transition:.2s;animation:shimmer 1.5s infinite}
+@keyframes shimmer{0%,100%{opacity:1}50%{opacity:.6}}
+.cell-issue:hover{background:rgba(239,68,68,.3);transform:scale(1.05)}
+.cell-fixed{display:inline-flex;align-items:center;gap:4px;
+  background:rgba(16,185,129,.12);border:1px solid rgba(16,185,129,.3);
+  border-radius:6px;padding:2px 8px;color:#6ee7b7;font-family:'JetBrains Mono',monospace;font-size:.8rem}
+.row-dup{background:rgba(251,191,36,.04)}
+.row-dup-badge{font-size:.65rem;color:var(--warn);background:rgba(251,191,36,.15);
+  border:1px solid rgba(251,191,36,.3);border-radius:4px;padding:1px 6px;cursor:pointer}
+.row-dup-badge:hover{background:rgba(251,191,36,.3)}
+.row-removed td{opacity:.3;text-decoration:line-through}
+
+/* TOAST */
+.toast{position:fixed;bottom:24px;right:24px;background:#10b981;color:#fff;
+  padding:12px 20px;border-radius:10px;font-weight:600;font-size:.9rem;
+  z-index:999;transform:translateY(80px);opacity:0;transition:.4s;pointer-events:none}
+.toast.show{transform:translateY(0);opacity:1}
+.toast.bad{background:var(--danger)}
+.toast.info{background:var(--p1)}
+
+/* PHASE 2 — FEATURE ENGINEERING */
+.feat-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px}
+.feat-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;
+  padding:14px 16px;cursor:pointer;transition:.3s}
+.feat-card:hover{border-color:var(--p1);background:var(--p1l)}
+.feat-card.selected{border-color:var(--ok);background:rgba(16,185,129,.1);cursor:default}
+.feat-card.selected::after{content:'✓ Eklendi';display:block;font-size:.7rem;color:var(--ok);margin-top:4px}
+.feat-icon{font-size:1.5rem;margin-bottom:6px}
+.feat-name{font-size:.85rem;font-weight:600;margin-bottom:2px}
+.feat-desc{font-size:.75rem;color:var(--muted)}
+.feat-pts{font-size:.8rem;color:var(--p1);font-weight:700;margin-top:4px}
+.next-phase-btn{width:100%;padding:13px;background:linear-gradient(135deg,var(--p1),#8b5cf6);
+  border:none;border-radius:10px;color:#fff;font-family:'Inter',sans-serif;
+  font-size:.95rem;font-weight:700;cursor:pointer;transition:.3s;margin-top:8px}
+.next-phase-btn:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(99,102,241,.5)}
+
+/* AI STATUS FEED */
+.ai-feed{background:var(--surface);border:1px solid var(--border);border-radius:12px;
+  padding:16px;min-height:160px;max-height:320px;overflow-y:auto}
+.ai-feed-item{display:flex;align-items:center;gap:10px;padding:8px 0;
+  border-bottom:1px solid var(--border);font-size:.82rem;animation:fadeIn .4s}
+@keyframes fadeIn{from{opacity:0;transform:translateX(10px)}to{opacity:1;transform:none}}
+.ai-feed-item:last-child{border:none}
+.ai-dot{width:8px;height:8px;border-radius:50%;background:var(--ai);flex-shrink:0}
+
+/* PHASE 3 — MODEL */
+.model-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.model-card{background:var(--surface);border:2px solid var(--border);border-radius:12px;
+  padding:16px;cursor:pointer;transition:.3s;text-align:center}
+.model-card:hover{border-color:var(--p1);background:var(--p1l)}
+.model-card.chosen{border-color:var(--p1);background:var(--p1l)}
+.model-icon{font-size:2rem;margin-bottom:8px}
+.model-name{font-weight:700;font-size:.9rem;margin-bottom:4px}
+.model-acc{font-size:.8rem;color:var(--muted)}
+.train-btn{width:100%;padding:13px;background:linear-gradient(135deg,var(--p1),#8b5cf6);
+  border:none;border-radius:10px;color:#fff;font-family:'Inter',sans-serif;
+  font-size:.95rem;font-weight:700;cursor:pointer;transition:.3s;margin-top:12px}
+.train-btn:disabled{opacity:.4;cursor:not-allowed}
+.progress-bar-wrap{background:rgba(255,255,255,.08);border-radius:8px;height:12px;
+  overflow:hidden;margin-top:10px}
+.progress-bar{height:100%;background:linear-gradient(90deg,var(--p1),var(--ok));
+  width:0%;transition:width .1s;border-radius:8px}
+.accuracy-reveal{text-align:center;margin-top:12px;font-size:2rem;font-weight:900;color:var(--ok);
+  animation:fadeIn .5s}
+
+/* ─── RESULTS SCREEN ─── */
+#resultsScreen{align-items:center;justify-content:center;padding:40px 20px;text-align:center}
+.winner-badge{font-size:4rem;margin-bottom:16px;animation:bounce 1s infinite}
+@keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-12px)}}
+.winner-title{font-size:clamp(1.8rem,4vw,3rem);font-weight:900;
+  background:linear-gradient(135deg,#fbbf24,#f97316);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+  margin-bottom:8px}
+.result-cards{display:flex;gap:20px;justify-content:center;flex-wrap:wrap;margin:32px 0}
+.result-card{background:var(--surface);border:1px solid var(--border);border-radius:20px;
+  padding:28px 32px;min-width:220px}
+.result-card.winner{border-color:var(--warn);box-shadow:0 0 30px rgba(251,191,36,.2)}
+.result-name{font-size:1.1rem;font-weight:700;margin-bottom:4px}
+.result-total{font-size:3rem;font-weight:900;margin:8px 0}
+.result-breakdown{font-size:.82rem;color:var(--muted);line-height:2}
+.play-again-btn{padding:14px 40px;background:linear-gradient(135deg,var(--p1),#8b5cf6);
+  border:none;border-radius:12px;color:#fff;font-family:'Inter',sans-serif;
+  font-size:1rem;font-weight:700;cursor:pointer;transition:.3s}
+.play-again-btn:hover{transform:translateY(-2px);box-shadow:0 8px 30px rgba(99,102,241,.5)}
+
+/* PHASE SECTION TITLES */
+.phase-title{font-size:1rem;font-weight:700;color:var(--p1);margin-bottom:12px;
+  display:flex;align-items:center;gap:8px}
+.phase-title span{font-size:.75rem;color:var(--muted);font-weight:400}
+
+.hidden{display:none!important}
+@media(max-width:768px){
+  .panels{grid-template-columns:1fr;grid-template-rows:auto auto auto}
+  .vs-divider{width:100%;height:40px;writing-mode:unset;border:none;border-top:1px solid var(--border);border-bottom:1px solid var(--border)}
+  .vs-text{writing-mode:unset}
+  .feat-grid,.model-grid{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+
+<!-- ═══ START SCREEN ═══ -->
+<div id="startScreen" class="screen active">
+  <div style="max-width:720px;width:100%;margin:0 auto;padding:40px 20px;text-align:center">
+    <div class="badge">2 KİŞİLİK REKABETÇİ OYUN</div>
+    <h1 class="start-title">⚔️ Kaggle Savaşı</h1>
+    <p class="start-sub">Model Yarışı — Kirli veriyi temizle, özellik mühendisliği yap, kazanan modeli bul!</p>
+    <div class="name-row">
+      <input type="text" id="playerNameInput" placeholder="😊 Adını gir..." maxlength="20">
+      <button class="start-btn" onclick="startGame()">Yarışmayı Başlat ⚔️</button>
+    </div>
+    <div class="how-grid">
+      <div class="how-card">
+        <div class="how-num">01</div>
+        <h4>🧹 Veri Temizleme</h4>
+        <p>Kirli veri setindeki hataları tıklayarak düzelt. Her düzeltme puan kazandırır.</p>
+      </div>
+      <div class="how-card">
+        <div class="how-num">02</div>
+        <h4>⚙️ Feature Engineering</h4>
+        <p>Yeni özellikler türet ve modeline bonus puan ekle. Doğru seçim kazandırır.</p>
+      </div>
+      <div class="how-card">
+        <div class="how-num">03</div>
+        <h4>🤖 Model Seçimi</h4>
+        <p>En iyi algoritmayı seç ve modelini eğit. Doğruluk oranın final skorunu belirler.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ GAME SCREEN ═══ -->
+<div id="gameScreen" class="screen">
+
+  <!-- Header -->
+  <div class="game-header">
+    <div class="phase-steps">
+      <div class="phase-step active" id="step1">🧹 Temizlik</div>
+      <div class="phase-step" id="step2">⚙️ Feature</div>
+      <div class="phase-step" id="step3">🤖 Model</div>
+    </div>
+    <div class="timer-wrap">
+      <div class="timer" id="timerDisplay">90</div>
+      <div class="timer-label">SÜRE (sn)</div>
+    </div>
+    <div class="scores-row">
+      <div class="score-box p1-score">
+        <div class="score-num" id="p1ScoreDisplay">0</div>
+        <div class="score-lbl" id="p1NameLabel">SEN</div>
+      </div>
+      <div style="font-size:1.2rem;color:var(--muted);font-weight:800">VS</div>
+      <div class="score-box ai-score">
+        <div class="score-num" id="aiScoreDisplay">0</div>
+        <div class="score-lbl">🤖 AI</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Panels -->
+  <div class="panels">
+
+    <!-- PLAYER PANEL -->
+    <div class="panel" id="playerPanel">
+
+      <div class="panel-header">
+        <div class="panel-avatar p1-av">😊</div>
+        <div class="panel-name" id="playerPanelName">Sen</div>
+        <div class="panel-pts" id="playerPts">0 puan</div>
+      </div>
+
+      <!-- Phase 1: Cleaning -->
+      <div id="p1-phase1">
+        <div class="phase-title">🧹 Veri Temizleme <span>Hatalı hücrelere tıkla!</span></div>
+        <div class="table-wrap">
+          <table id="playerTable"></table>
+        </div>
+        <div style="margin-top:12px;font-size:.8rem;color:var(--muted)">
+          Düzeltilen: <strong id="playerFixed" style="color:var(--ok)">0</strong> /
+          <span id="totalIssues">8</span> sorun
+        </div>
+        <button class="next-phase-btn" style="margin-top:12px" onclick="advancePhase()">
+          Sonraki Aşamaya Geç →
+        </button>
+      </div>
+
+      <!-- Phase 2: Feature Engineering -->
+      <div id="p1-phase2" class="hidden">
+        <div class="phase-title">⚙️ Feature Engineering <span>Yeni özellikler ekle!</span></div>
+        <div class="feat-grid" id="featGrid"></div>
+        <button class="next-phase-btn" onclick="advancePhase()">Modele Geç →</button>
+      </div>
+
+      <!-- Phase 3: Model -->
+      <div id="p1-phase3" class="hidden">
+        <div class="phase-title">🤖 Model Seçimi <span>En iyi algoritmayı seç!</span></div>
+        <div class="model-grid" id="modelGrid"></div>
+        <button class="train-btn" id="trainBtn" onclick="trainModel()" disabled>
+          🚀 Modeli Eğit
+        </button>
+        <div class="progress-bar-wrap hidden" id="trainProgress">
+          <div class="progress-bar" id="trainBar"></div>
+        </div>
+        <div class="accuracy-reveal hidden" id="accuracyReveal"></div>
+      </div>
+    </div>
+
+    <!-- DIVIDER -->
+    <div class="vs-divider"><div class="vs-text">VS</div></div>
+
+    <!-- AI PANEL -->
+    <div class="panel" id="aiPanel" style="background:rgba(249,115,22,.02)">
+
+      <div class="panel-header">
+        <div class="panel-avatar ai-av">🤖</div>
+        <div class="panel-name" style="color:var(--ai)">AI Rakip</div>
+        <div class="panel-pts" id="aiPts">0 puan</div>
+      </div>
+
+      <!-- AI Phase 1 -->
+      <div id="ai-phase1">
+        <div class="phase-title" style="color:var(--ai)">🧹 AI Temizliyor... <span>otomatik</span></div>
+        <div class="ai-feed" id="aiFeed">
+          <div style="color:var(--muted);font-size:.8rem;padding:8px 0">AI veri setini analiz ediyor...</div>
+        </div>
+        <div style="margin-top:12px;font-size:.8rem;color:var(--muted)">
+          AI Düzeltilen: <strong id="aiFixed" style="color:var(--ok)">0</strong> / 8
+        </div>
+      </div>
+
+      <!-- AI Phase 2 -->
+      <div id="ai-phase2" class="hidden">
+        <div class="phase-title" style="color:var(--ai)">⚙️ AI Özellik Seçiyor...</div>
+        <div class="ai-feed" id="aiFeed2">
+          <div style="color:var(--muted);font-size:.8rem;padding:8px 0">AI özellikler analiz ediyor...</div>
+        </div>
+      </div>
+
+      <!-- AI Phase 3 -->
+      <div id="ai-phase3" class="hidden">
+        <div class="phase-title" style="color:var(--ai)">🤖 AI Model Seçiyor...</div>
+        <div class="ai-feed" id="aiFeed3">
+          <div style="color:var(--muted);font-size:.8rem;padding:8px 0">AI en iyi modeli arıyor...</div>
+        </div>
+        <div class="accuracy-reveal hidden" id="aiAccuracyReveal" style="color:var(--ai)"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ RESULTS SCREEN ═══ -->
+<div id="resultsScreen" class="screen">
+  <div style="max-width:600px;width:100%;margin:0 auto">
+    <div class="winner-badge" id="winnerBadge">🏆</div>
+    <h2 class="winner-title" id="winnerTitle">Kazanan!</h2>
+    <p id="winnerSub" style="color:var(--muted);margin-bottom:8px"></p>
+    <div class="result-cards" id="resultCards"></div>
+    <button class="play-again-btn" onclick="resetGame()">🔄 Tekrar Oyna</button>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ─── DATA ───
+const ISSUES = [
+  {row:1, col:'mat', label:'???',    fix:'72',   type:'missing',   pts:10,  msg:'Zeynep - Math eksik değer → 72 ile dolduruldu'},
+  {row:2, col:'yas', label:'999',    fix:'22',   type:'outlier',   pts:15,  msg:'Ali - Yaş aykırı değer (999) → 22 düzeltildi'},
+  {row:3, col:'fen', label:'???',    fix:'88',   type:'missing',   pts:10,  msg:'Fatma - Fen eksik değer → 88 ile dolduruldu'},
+  {row:5, col:'mat', label:'metin', fix:'74',   type:'wrong',     pts:15,  msg:'Ayşe - Math sütununda metin → 74 sayısına çevrildi'},
+  {row:5, col:'dup', label:'dup',   fix:'sil',  type:'duplicate', pts:20,  msg:'Satır 6 (Zeynep) kopya satır → silindi'},
+  {row:7, col:'fen', label:'???',    fix:'84',   type:'missing',   pts:10,  msg:'Can - Fen eksik değer → 84 ile dolduruldu'},
+  {row:8, col:'ing', label:'???',    fix:'81',   type:'missing',   pts:10,  msg:'Selin - İngilizce eksik → 81 ile dolduruldu'},
+  {row:9, col:'yas', label:'-5',    fix:'19',   type:'outlier',   pts:15,  msg:'Burak - Yaş negatif (-5) → 19 düzeltildi'},
+];
+
+const ROWS = [
+  {id:1, ad:'Ahmet',  yas:20,  mat:85,     fen:90,    ing:78, gpa:3.2},
+  {id:2, ad:'Zeynep', yas:21,  mat:'???',   fen:88,    ing:92, gpa:3.5, isDirty:{mat:0}},
+  {id:3, ad:'Ali',    yas:999, mat:75,     fen:82,    ing:88, gpa:3.1, isDirty:{yas:1}},
+  {id:4, ad:'Fatma',  yas:22,  mat:92,     fen:'???',  ing:85, gpa:3.7, isDirty:{fen:2}},
+  {id:5, ad:'Mehmet', yas:20,  mat:88,     fen:91,    ing:79, gpa:3.3},
+  {id:6, ad:'Ayşe',   yas:23,  mat:'metin',fen:76,    ing:83, gpa:2.9, isDirty:{mat:3}},
+  {id:7, ad:'Zeynep', yas:21,  mat:'???',   fen:88,    ing:92, gpa:3.5, isDup:true,     isDirty:{dup:4}},
+  {id:8, ad:'Can',    yas:19,  mat:78,     fen:'???',  ing:91, gpa:3.0, isDirty:{fen:5}},
+  {id:9, ad:'Selin',  yas:24,  mat:95,     fen:89,    ing:'???', gpa:3.8, isDirty:{ing:6}},
+  {id:10,ad:'Burak',  yas:-5,  mat:82,     fen:85,    ing:87, gpa:3.2, isDirty:{yas:7}},
+];
+
+const FEATURES = [
+  {id:'avg',   icon:'📊', name:'STEM Ortalaması',   desc:'Math + Fen ortalaması',       pts:25},
+  {id:'grade', icon:'🎓', name:'Harf Notu',          desc:'GPA → A/B/C/D dönüşümü',    pts:20},
+  {id:'norm',  icon:'📐', name:'Normalize Skorlar',  desc:'Tüm puanları 0-1 aralığında',pts:20},
+  {id:'total', icon:'➕', name:'Toplam Puan',         desc:'Mat+Fen+İng toplamı',        pts:25},
+  {id:'age',   icon:'👤', name:'Yaş Grubu',           desc:'Genç / Orta / Olgun',        pts:15},
+  {id:'risk',  icon:'⚠️', name:'Risk Skoru',          desc:'Düşük GPA riski tespiti',    pts:30},
+];
+
+const MODELS = [
+  {id:'lr',  icon:'📈', name:'Linear Regression', acc:78},
+  {id:'rf',  icon:'🌲', name:'Random Forest',      acc:87},
+  {id:'nn',  icon:'🧠', name:'Neural Network',     acc:92},
+  {id:'knn', icon:'📍', name:'KNN',                acc:71},
+  {id:'svm', icon:'🔷', name:'SVM',                acc:83},
+  {id:'xgb', icon:'⚡', name:'XGBoost',            acc:89},
+];
+
+// ─── STATE ───
+let playerName='', phase=1, timer=90, timerInterval=null;
+let playerScore=0, aiScore=0;
+let playerFixed=new Set(), aiFixed=new Set();
+let playerFeats=new Set(), aiFeats=new Set();
+let playerModel=null, aiModel=null;
+let playerAccuracy=0, aiAccuracy=0;
+let rowRemoved=false;
+let aiTimers=[];
+
+// ─── START ───
+function startGame(){
+  const nm=document.getElementById('playerNameInput').value.trim();
+  playerName=nm||'Oyuncu';
+  document.getElementById('p1NameLabel').textContent=playerName;
+  document.getElementById('playerPanelName').textContent=playerName;
+  document.getElementById('p1ScoreDisplay').textContent='0';
+
+  showScreen('gameScreen');
+  buildPlayerTable();
+  buildFeatGrid();
+  buildModelGrid();
+  startTimer(90);
+  scheduleAI_Phase1();
+}
+
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+// ─── TIMER ───
+function startTimer(secs){
+  clearInterval(timerInterval);
+  timer=secs;
+  updateTimerDisplay();
+  timerInterval=setInterval(()=>{
+    timer--;
+    updateTimerDisplay();
+    if(timer<=0){clearInterval(timerInterval);onTimerEnd();}
+  },1000);
+}
+function updateTimerDisplay(){
+  const el=document.getElementById('timerDisplay');
+  el.textContent=timer;
+  el.classList.toggle('urgent',timer<=10);
+}
+function onTimerEnd(){
+  if(phase===1||phase===2) advancePhase();
+  else if(phase===3) endGame();
+}
+
+// ─── PHASE ADVANCE ───
+function advancePhase(){
+  clearInterval(timerInterval);
+  aiTimers.forEach(clearTimeout); aiTimers=[];
+  if(phase===1){
+    phase=2;
+    document.getElementById('p1-phase1').classList.add('hidden');
+    document.getElementById('p1-phase2').classList.remove('hidden');
+    document.getElementById('ai-phase1').classList.add('hidden');
+    document.getElementById('ai-phase2').classList.remove('hidden');
+    document.getElementById('step1').classList.remove('active');
+    document.getElementById('step1').classList.add('done');
+    document.getElementById('step2').classList.add('active');
+    startTimer(60);
+    scheduleAI_Phase2();
+  } else if(phase===2){
+    phase=3;
+    document.getElementById('p1-phase2').classList.add('hidden');
+    document.getElementById('p1-phase3').classList.remove('hidden');
+    document.getElementById('ai-phase2').classList.add('hidden');
+    document.getElementById('ai-phase3').classList.remove('hidden');
+    document.getElementById('step2').classList.remove('active');
+    document.getElementById('step2').classList.add('done');
+    document.getElementById('step3').classList.add('active');
+    startTimer(45);
+    scheduleAI_Phase3();
+  }
+}
+
+// ─── BUILD TABLE ───
+function buildPlayerTable(){
+  const t=document.getElementById('playerTable');
+  t.innerHTML=`<thead><tr>
+    <th>#</th><th>Ad</th><th>Yaş</th><th>Math</th><th>Fen</th><th>İng</th><th>GPA</th>
+  </tr></thead><tbody id="playerTbody"></tbody>`;
+  const tb=document.getElementById('playerTbody');
+  ROWS.forEach((r,i)=>{
+    const tr=document.createElement('tr');
+    tr.id=`prow-${i}`;
+    if(r.isDup) tr.classList.add('row-dup');
+    tr.innerHTML=`<td>${r.id}</td>
+      <td>${r.ad}${r.isDup?`<span class="row-dup-badge" onclick="fixIssue(4,this,'prow-${i}')">♊ Kopya</span>`:''}</td>
+      <td>${cellHtml(r,'yas',i,7)}</td>
+      <td>${cellHtml(r,'mat',i,3)}</td>
+      <td>${cellHtml(r,'fen',i,5)}</td>
+      <td>${cellHtml(r,'ing',i,6)}</td>
+      <td>${r.gpa}</td>`;
+    tb.appendChild(tr);
+  });
+}
+
+function cellHtml(r,col,rowIdx,issueDefault){
+  const val=r[col];
+  if(r.isDirty&&col in r.isDirty){
+    const iid=r.isDirty[col];
+    const issue=ISSUES[iid];
+    return `<span class="cell-issue" onclick="fixIssue(${iid},this)" title="Sorun var! Tıkla">${val} ⚠️</span>`;
+  }
+  return String(val===undefined?'':val);
+}
+
+function fixIssue(issueId, el, rowId){
+  if(playerFixed.has(issueId)) return;
+  const issue=ISSUES[issueId];
+  playerFixed.add(issueId);
+  const pts=issue.pts;
+  playerScore+=pts;
+  updateScores();
+  // visual fix
+  if(issue.type==='duplicate'){
+    const tr=document.getElementById(rowId||el.parentElement.parentElement.id);
+    if(tr){tr.classList.add('row-removed');setTimeout(()=>tr.style.display='none',600);}
+    rowRemoved=true;
+  } else {
+    const parent=el.parentElement||el;
+    (el.tagName==='SPAN'?el:el).outerHTML=`<span class="cell-fixed">✓ ${issue.fix}</span>`;
+    // replace in DOM
+    if(el.parentElement) el.outerHTML=`<span class="cell-fixed">✓ ${issue.fix}</span>`;
+  }
+  document.getElementById('playerFixed').textContent=playerFixed.size;
+  showToast(`+${pts} puan! ${issue.msg}`,'good');
+}
+
+function buildFeatGrid(){
+  const g=document.getElementById('featGrid');
+  g.innerHTML='';
+  FEATURES.forEach(f=>{
+    const d=document.createElement('div');
+    d.className='feat-card';
+    d.id=`feat-${f.id}`;
+    d.innerHTML=`<div class="feat-icon">${f.icon}</div>
+      <div class="feat-name">${f.name}</div>
+      <div class="feat-desc">${f.desc}</div>
+      <div class="feat-pts">+${f.pts} puan</div>`;
+    d.onclick=()=>{
+      if(playerFeats.has(f.id))return;
+      playerFeats.add(f.id);
+      d.classList.add('selected');
+      playerScore+=f.pts;
+      updateScores();
+      showToast(`+${f.pts} puan! ${f.name} eklendi`,'good');
+    };
+    g.appendChild(d);
+  });
+}
+
+function buildModelGrid(){
+  const g=document.getElementById('modelGrid');
+  g.innerHTML='';
+  MODELS.forEach(m=>{
+    const d=document.createElement('div');
+    d.className='model-card';
+    d.id=`model-${m.id}`;
+    d.innerHTML=`<div class="model-icon">${m.icon}</div>
+      <div class="model-name">${m.name}</div>
+      <div class="model-acc">Doğruluk: ~${m.acc}%</div>`;
+    d.onclick=()=>{
+      document.querySelectorAll('.model-card').forEach(c=>c.classList.remove('chosen'));
+      d.classList.add('chosen');
+      playerModel=m;
+      document.getElementById('trainBtn').disabled=false;
+    };
+    g.appendChild(d);
+  });
+}
+
+function trainModel(){
+  if(!playerModel)return;
+  const btn=document.getElementById('trainBtn');
+  btn.disabled=true; btn.textContent='Eğitiliyor...';
+  const prog=document.getElementById('trainProgress');
+  const bar=document.getElementById('trainBar');
+  prog.classList.remove('hidden');
+  let w=0;
+  const iv=setInterval(()=>{
+    w+=Math.random()*8+2;
+    if(w>=100){w=100;clearInterval(iv);revealAccuracy();}
+    bar.style.width=w+'%';
+  },80);
+}
+function revealAccuracy(){
+  const acc=playerModel.acc+Math.floor(Math.random()*5-2);
+  playerAccuracy=Math.min(Math.max(acc,60),99);
+  playerScore+=playerAccuracy;
+  updateScores();
+  const el=document.getElementById('accuracyReveal');
+  el.classList.remove('hidden');
+  el.textContent=`✅ Model Doğruluğu: ${playerAccuracy}%`;
+  document.getElementById('trainBtn').textContent='✅ Eğitim Tamamlandı';
+  showToast(`+${playerAccuracy} puan! Model başarıyla eğitildi.`,'good');
+  setTimeout(endGame,2500);
+}
+
+// ─── AI ───
+function scheduleAI_Phase1(){
+  const shuffled=[...ISSUES].sort(()=>Math.random()-.5);
+  let delay=3000;
+  shuffled.forEach((issue,idx)=>{
+    const skip=Math.random()<0.2;
+    if(!skip){
+      const t=setTimeout(()=>{
+        if(phase!==1)return;
+        const iid=ISSUES.indexOf(issue);
+        if(!aiFixed.has(iid)){
+          aiFixed.add(iid);
+          aiScore+=issue.pts;
+          updateScores();
+          document.getElementById('aiFixed').textContent=aiFixed.size;
+          addAIFeed('aiFeed',`✔ ${issue.msg}`);
+        }
+      },delay);
+      aiTimers.push(t);
+      delay+=Math.random()*7000+4000;
+    }
+  });
+}
+
+function scheduleAI_Phase2(){
+  const shuffled=[...FEATURES].sort(()=>Math.random()-.5).slice(0,Math.floor(Math.random()*2+3));
+  let delay=1500;
+  shuffled.forEach(f=>{
+    const t=setTimeout(()=>{
+      if(phase!==2)return;
+      aiFeats.add(f.id);
+      aiScore+=f.pts;
+      updateScores();
+      addAIFeed('aiFeed2',`⚙️ ${f.name} özelliği eklendi (+${f.pts} puan)`);
+    },delay);
+    aiTimers.push(t);
+    delay+=Math.random()*5000+3000;
+  });
+}
+
+function scheduleAI_Phase3(){
+  const m=MODELS[Math.floor(Math.random()*MODELS.length)];
+  aiModel=m;
+  const t1=setTimeout(()=>{
+    if(phase!==3)return;
+    addAIFeed('aiFeed3',`🤖 ${m.name} modeli seçildi`);
+  },2000);
+  const t2=setTimeout(()=>{
+    if(phase!==3)return;
+    addAIFeed('aiFeed3','🚀 Model eğitimi başladı...');
+  },5000);
+  const t3=setTimeout(()=>{
+    if(phase!==3)return;
+    const acc=m.acc+Math.floor(Math.random()*5-2);
+    aiAccuracy=Math.min(Math.max(acc,60),99);
+    aiScore+=aiAccuracy;
+    updateScores();
+    const el=document.getElementById('aiAccuracyReveal');
+    el.classList.remove('hidden');
+    el.textContent=`AI Doğruluk: ${aiAccuracy}%`;
+    addAIFeed('aiFeed3',`✅ Model doğruluğu: ${aiAccuracy}%`);
+  },12000);
+  [t1,t2,t3].forEach(t=>aiTimers.push(t));
+}
+
+function addAIFeed(feedId, text){
+  const feed=document.getElementById(feedId);
+  if(!feed)return;
+  const item=document.createElement('div');
+  item.className='ai-feed-item';
+  item.innerHTML=`<div class="ai-dot"></div><span>${text}</span>`;
+  feed.appendChild(item);
+  feed.scrollTop=feed.scrollHeight;
+}
+
+// ─── SCORES ───
+function updateScores(){
+  document.getElementById('p1ScoreDisplay').textContent=playerScore;
+  document.getElementById('aiScoreDisplay').textContent=aiScore;
+  document.getElementById('playerPts').textContent=playerScore+' puan';
+  document.getElementById('aiPts').textContent=aiScore+' puan';
+}
+
+// ─── END GAME ───
+function endGame(){
+  clearInterval(timerInterval);
+  aiTimers.forEach(clearTimeout);
+  // Make sure AI has accuracy
+  if(!aiAccuracy&&aiModel){
+    const acc=aiModel.acc+Math.floor(Math.random()*5-2);
+    aiAccuracy=Math.min(Math.max(acc,60),99);
+    aiScore+=aiAccuracy;
+  }
+  const playerWins=playerScore>=aiScore;
+  const badge=playerWins?'🏆':'😔';
+  const title=playerWins?`${playerName} Kazandı! 🎉`:'AI Kazandı! 🤖';
+  const sub=playerWins?'Tebrikler! Kaggle Savaşı\'nı harika geçirdin.':'Bir dahaki sefere başarılar! AI bu sefer bir adım öndeydi.';
+  document.getElementById('winnerBadge').textContent=badge;
+  document.getElementById('winnerTitle').textContent=title;
+  document.getElementById('winnerSub').textContent=sub;
+  const cards=document.getElementById('resultCards');
+  cards.innerHTML=`
+    <div class="result-card ${playerWins?'winner':''}">
+      <div class="result-name">😊 ${playerName}</div>
+      <div class="result-total" style="color:var(--p1)">${playerScore}</div>
+      <div class="result-breakdown">
+        🧹 Temizlik: ${[...playerFixed].reduce((a,i)=>a+ISSUES[i].pts,0)} puan<br>
+        ⚙️ Özellikler: ${[...playerFeats].reduce((a,i)=>a+(FEATURES.find(f=>f.id===i)?.pts||0),0)} puan<br>
+        🤖 Model (${playerModel?.name||'—'}): ${playerAccuracy}%
+      </div>
+    </div>
+    <div class="result-card ${!playerWins?'winner':''}">
+      <div class="result-name">🤖 AI Rakip</div>
+      <div class="result-total" style="color:var(--ai)">${aiScore}</div>
+      <div class="result-breakdown">
+        🧹 Temizlik: ${[...aiFixed].reduce((a,i)=>a+ISSUES[i].pts,0)} puan<br>
+        ⚙️ Özellikler: ${[...aiFeats].reduce((a,i)=>a+(FEATURES.find(f=>f.id===i)?.pts||0),0)} puan<br>
+        🤖 Model (${aiModel?.name||'—'}): ${aiAccuracy}%
+      </div>
+    </div>`;
+  showScreen('resultsScreen');
+}
+
+function resetGame(){
+  playerScore=0;aiScore=0;phase=1;playerFixed=new Set();aiFixed=new Set();
+  playerFeats=new Set();aiFeats=new Set();playerModel=null;aiModel=null;
+  playerAccuracy=0;aiAccuracy=0;rowRemoved=false;
+  document.getElementById('playerNameInput').value='';
+  document.getElementById('step1').className='phase-step active';
+  document.getElementById('step2').className='phase-step';
+  document.getElementById('step3').className='phase-step';
+  document.getElementById('trainBtn').disabled=true;
+  document.getElementById('trainBtn').textContent='🚀 Modeli Eğit';
+  document.getElementById('trainProgress').classList.add('hidden');
+  document.getElementById('trainBar').style.width='0%';
+  document.getElementById('accuracyReveal').classList.add('hidden');
+  document.getElementById('aiAccuracyReveal').classList.add('hidden');
+  showScreen('startScreen');
+}
+
+// ─── TOAST ───
+let toastTimer=null;
+function showToast(msg,type='good'){
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.className='toast';
+  if(type==='bad') t.classList.add('bad');
+  else if(type==='info') t.classList.add('info');
+  void t.offsetWidth; t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer=setTimeout(()=>t.classList.remove('show'),2800);
+}
+</script>
+</body>
+</html>
